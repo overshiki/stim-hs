@@ -1,0 +1,68 @@
+cabal-version:       3.0
+name:                stim-hs
+version:             0.1.0
+synopsis:            Safe Haskell bindings for Stim
+homepage:            https://github.com/inmzhang/stim-hs
+license:             Apache-2.0
+license-file:        LICENSE
+author:              Yiming Zhang
+maintainer:          zhangyiming21@mail.ustc.edu.cn
+category:            Science, FFI, Simulation
+build-type:          Custom
+custom-setup
+  setup-depends:       base >= 4.16 && < 5,
+                       Cabal >= 3.6,
+                       process >= 1.6,
+                       directory >= 1.3
+
+library
+  exposed-modules:     Stim
+                     , Stim.Types
+                     , Stim.Circuit
+                     , Stim.TableauSimulator
+                     , Stim.Tableau
+                     , Stim.Sampler
+  other-modules:       Stim.Internal.Types
+                     , Stim.Internal.Memory
+                     , Stim.Internal.Error
+                     , Stim.Internal.CString
+                     , Stim.Internal.FFI
+  build-depends:       base >= 4.16 && < 5
+                     , bytestring >= 0.11
+                     , text >= 2.0
+                     , vector >= 0.13
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  ghc-options:         -Wall -Wcompat
+  extra-libraries:     stimhs
+
+executable stim-hs-test
+  main-is:             Main.hs
+  hs-source-dirs:      test
+  build-depends:       base >= 4.16 && < 5
+                     , stim-hs
+                     , vector >= 0.13
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+executable stim-hs-demo
+  main-is:             Main.hs
+  hs-source-dirs:      app
+  build-depends:       base >= 4.16 && < 5
+                     , stim-hs
+                     , vector >= 0.13
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+-- test-suite disabled for now due to relative path issues in CI
+-- test-suite stim-test
+--   type:                exitcode-stdio-1.0
+--   main-is:             Main.hs
+--   hs-source-dirs:      test
+--   build-depends:       base >= 4.16 && < 5
+--                      , stim
+--                      , vector >= 0.13
+--                      , tasty >= 1.4
+--                      , tasty-hunit >= 0.10
+--   default-language:    Haskell2010
+--   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N

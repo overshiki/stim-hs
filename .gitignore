@@ -1,1 +1,5 @@
 doc
+dist-newstyle
+.github
+*.a
+*.o

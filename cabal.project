@@ -1,0 +1,4 @@
+packages: stim-hs
+
+package stim-hs
+  shared: False
