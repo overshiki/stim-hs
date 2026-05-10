@@ -1,5 +1,6 @@
 module Main where
 
+import Data.List (isInfixOf)
 import qualified Data.Vector.Storable as VS
 import Stim
 
@@ -57,5 +58,20 @@ main = do
                             putStrLn $ "Num shots: " ++ show (shotDataNumShots shots)
                             putStrLn $ "Num measurements: " ++ show (shotDataNumBits shots)
                             putStrLn $ "Data: " ++ show (shotDataBytes shots)
+
+    putStrLn "=== Test 5: Circuit to Detector Error Model ==="
+    circ4Result <- circuitFromString "H 0\nCNOT 0 1\nM 0 1\nDETECTOR rec[-1] rec[-2]"
+    case circ4Result of
+        Left err -> error (show err)
+        Right circ4 -> do
+            demResult <- circuitToDetectorErrorModel circ4
+            case demResult of
+                Left err -> error (show err)
+                Right dem -> do
+                    putStrLn dem
+                    -- Basic sanity check: DEM should mention detector D0
+                    if "D0" `isInfixOf` dem
+                        then putStrLn "DEM contains D0."
+                        else error "DEM missing expected D0 detector"
 
     putStrLn "=== All tests passed! ==="

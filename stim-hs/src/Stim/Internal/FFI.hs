@@ -60,6 +60,9 @@ foreign import ccall safe "stimhs_circuit_to_string"
 foreign import ccall safe "stimhs_circuit_from_string"
     c_stimhs_circuit_from_string :: CString -> Ptr (Ptr StimCircuit) -> Ptr CChar -> CSize -> IO CInt
 
+foreign import ccall safe "stimhs_circuit_to_detector_error_model"
+    c_stimhs_circuit_to_detector_error_model :: Ptr StimCircuit -> Ptr CString -> Ptr CChar -> CSize -> IO CInt
+
 foreign import ccall safe "stimhs_string_free"
     c_stimhs_string_free :: CString -> IO ()
 

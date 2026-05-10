@@ -54,6 +54,15 @@ executable stim-hs-demo
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
+executable stim-hs-dem-demo
+  main-is:             DEMDemo.hs
+  hs-source-dirs:      app
+  build-depends:       base >= 4.16 && < 5
+                     , stim-hs
+                     , vector >= 0.13
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
 -- test-suite disabled for now due to relative path issues in CI
 -- test-suite stim-test
 --   type:                exitcode-stdio-1.0

@@ -17,6 +17,7 @@ module Stim.Circuit
     , appendR
     , circuitToString
     , circuitFromString
+    , circuitToDetectorErrorModel
     ) where
 
 import Control.Exception (bracket)
@@ -131,3 +132,24 @@ circuitFromString str =
                     ptr <- peek outPtr
                     circ <- Circuit <$> newForeignPtr p_stimhs_circuit_free ptr
                     return (Right circ)
+
+-- | Compile a circuit to its Detector Error Model text representation.
+--
+-- The parameters used internally are chosen for QEC decoder workloads:
+-- decompose_errors=true, fold_loops=true, allow_gauge_detectors=false,
+-- approximate_disjoint_errors_threshold=1.0 (never merge disjoint errors),
+-- ignore_decomposition_failures=false.
+-- These differ from Stim Python's defaults.
+circuitToDetectorErrorModel :: Circuit -> IO (Either StimError String)
+circuitToDetectorErrorModel (Circuit fp) =
+    withForeignPtr fp $ \cPtr ->
+        alloca $ \strPtr -> do
+            result <- withErrorBuffer $ \errBuf errLen ->
+                c_stimhs_circuit_to_detector_error_model cPtr strPtr errBuf errLen
+            case result of
+                Left err -> return (Left err)
+                Right () -> do
+                    cstr <- peek strPtr
+                    str <- peekCString cstr
+                    c_stimhs_string_free cstr
+                    return (Right str)

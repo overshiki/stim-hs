@@ -64,6 +64,12 @@ stimhs_result_t stimhs_circuit_to_string(stimhs_circuit_t c, char** out_str,
 stimhs_result_t stimhs_circuit_from_string(const char* str, stimhs_circuit_t* out_c,
                                            char* err_buf, size_t err_buf_len);
 
+/* Compile a circuit to its Detector Error Model string representation.
+ * The caller must free *out_str with stimhs_string_free().
+ */
+stimhs_result_t stimhs_circuit_to_detector_error_model(stimhs_circuit_t c, char** out_str,
+                                                       char* err_buf, size_t err_buf_len);
+
 /* ========== TableauSimulator ========== */
 stimhs_tableau_sim_t stimhs_tableau_sim_new(size_t num_qubits, char* err_buf, size_t err_buf_len);
 void stimhs_tableau_sim_free(stimhs_tableau_sim_t s);
