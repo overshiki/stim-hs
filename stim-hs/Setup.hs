@@ -29,18 +29,21 @@ main = defaultMainWithHooks simpleUserHooks
         cwd <- getCurrentDirectory
         let cStimDir = cwd ++ "/../c-stim"
             absCStimDir = cStimDir
+            cxxLibDirPath = "/usr/local/lib64"
 #if MIN_VERSION_Cabal(3,14,0)
             libDir  = makeSymbolicPath absCStimDir
             incDir  = makeSymbolicPath (absCStimDir ++ "/include")
+            cxxLibDir = makeSymbolicPath cxxLibDirPath
 #else
             libDir  = absCStimDir
             incDir  = absCStimDir ++ "/include"
+            cxxLibDir = cxxLibDirPath
 #endif
             updBI bi = bi
-                { extraLibDirs = extraLibDirs bi ++ [libDir]
+                { extraLibDirs = extraLibDirs bi ++ [libDir, cxxLibDir]
                 , includeDirs = includeDirs bi ++ [incDir]
-                , extraLibs = extraLibs bi ++ ["stimhs"]
-                , ldOptions = ldOptions bi ++ ["/usr/local/lib64/libstdc++.a"]
+                , extraLibs = extraLibs bi ++ ["stimhs", "stdc++"]
+                , ldOptions = ldOptions bi ++ ["-Wl,-rpath," ++ cxxLibDirPath]
                 }
             updLib lib = lib { libBuildInfo = updBI (libBuildInfo lib) }
             updExe exe = exe { buildInfo = updBI (buildInfo exe) }
