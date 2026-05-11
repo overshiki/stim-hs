@@ -1,7 +1,11 @@
+{-# LANGUAGE CPP #-}
 import Distribution.Simple
 import Distribution.Simple.Setup
 import Distribution.Simple.LocalBuildInfo
 import Distribution.PackageDescription
+#if MIN_VERSION_Cabal(3,14,0)
+import Distribution.Utils.Path (makeSymbolicPath)
+#endif
 import System.Process
 import System.Exit
 import System.Directory
@@ -25,9 +29,16 @@ main = defaultMainWithHooks simpleUserHooks
         cwd <- getCurrentDirectory
         let cStimDir = cwd ++ "/../c-stim"
             absCStimDir = cStimDir
+#if MIN_VERSION_Cabal(3,14,0)
+            libDir  = makeSymbolicPath absCStimDir
+            incDir  = makeSymbolicPath (absCStimDir ++ "/include")
+#else
+            libDir  = absCStimDir
+            incDir  = absCStimDir ++ "/include"
+#endif
             updBI bi = bi
-                { extraLibDirs = extraLibDirs bi ++ [absCStimDir]
-                , includeDirs = includeDirs bi ++ [absCStimDir ++ "/include"]
+                { extraLibDirs = extraLibDirs bi ++ [libDir]
+                , includeDirs = includeDirs bi ++ [incDir]
                 , extraLibs = extraLibs bi ++ ["stimhs"]
                 , ldOptions = ldOptions bi ++ ["/usr/local/lib64/libstdc++.a"]
                 }
