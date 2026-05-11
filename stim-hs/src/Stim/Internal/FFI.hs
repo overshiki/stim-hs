@@ -111,6 +111,9 @@ foreign import ccall safe "&stimhs_det_sampler_free"
 foreign import ccall safe "stimhs_det_sampler_sample"
     c_stimhs_det_sampler_sample :: Ptr StimDetSampler -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> Ptr CSize -> Ptr CSize -> Ptr CChar -> CSize -> IO CInt
 
+foreign import ccall safe "stimhs_det_sampler_sample_with_observables"
+    c_stimhs_det_sampler_sample_with_observables :: Ptr StimDetSampler -> CSize -> Ptr (Ptr Word8) -> Ptr CSize -> Ptr CSize -> Ptr (Ptr Word8) -> Ptr CSize -> Ptr CSize -> Ptr CChar -> CSize -> IO CInt
+
 foreign import ccall safe "stimhs_buffer_free"
     c_stimhs_buffer_free :: Ptr Word8 -> IO ()
 

@@ -96,6 +96,15 @@ stimhs_result_t stimhs_det_sampler_sample(stimhs_det_sampler_t s, size_t num_sho
                                           size_t* out_num_detectors, size_t* out_num_observables,
                                           char* err_buf, size_t err_buf_len);
 
+/* Sample both detection events and observable flips.
+ * Both output buffers must be freed with stimhs_buffer_free().
+ */
+stimhs_result_t stimhs_det_sampler_sample_with_observables(
+    stimhs_det_sampler_t s, size_t num_shots,
+    uint8_t** out_det_buffer, size_t* out_det_num_bytes, size_t* out_num_detectors,
+    uint8_t** out_obs_buffer, size_t* out_obs_num_bytes, size_t* out_num_observables,
+    char* err_buf, size_t err_buf_len);
+
 /* ========== MeasurementSampler ========== */
 stimhs_result_t stimhs_circuit_compile_measurement_sampler(stimhs_circuit_t c, stimhs_meas_sampler_t* out,
                                                            char* err_buf, size_t err_buf_len);

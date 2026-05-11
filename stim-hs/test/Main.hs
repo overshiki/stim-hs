@@ -74,4 +74,37 @@ main = do
                         then putStrLn "DEM contains D0."
                         else error "DEM missing expected D0 detector"
 
+    putStrLn "=== Test 6: DetectorSampler with observables ==="
+    circ5Result <- circuitFromString "H 0\nCNOT 0 1\nM 0 1\nDETECTOR rec[-1] rec[-2]\nOBSERVABLE_INCLUDE(0) rec[-1]"
+    case circ5Result of
+        Left err -> error (show err)
+        Right circ5 -> do
+            samplerResult <- compileDetectorSampler circ5
+            case samplerResult of
+                Left err -> error (show err)
+                Right sampler -> do
+                    shotResult <- sampleDetectorsWithObservables sampler 10
+                    case shotResult of
+                        Left err -> error (show err)
+                        Right (detShots, obsShots) -> do
+                            putStrLn $ "Detector shots: " ++ show (shotDataNumShots detShots)
+                            putStrLn $ "Detector bits: " ++ show (shotDataNumBits detShots)
+                            putStrLn $ "Detector data: " ++ show (shotDataBytes detShots)
+                            putStrLn $ "Observable shots: " ++ show (shotDataNumShots obsShots)
+                            putStrLn $ "Observable bits: " ++ show (shotDataNumBits obsShots)
+                            putStrLn $ "Observable data: " ++ show (shotDataBytes obsShots)
+                            -- Sanity checks
+                            if shotDataNumShots detShots == 10
+                                then putStrLn "Correct number of detector shots."
+                                else error "Wrong number of detector shots"
+                            if shotDataNumBits detShots == 1
+                                then putStrLn "Correct number of detectors."
+                                else error "Wrong number of detectors"
+                            if shotDataNumShots obsShots == 10
+                                then putStrLn "Correct number of observable shots."
+                                else error "Wrong number of observable shots"
+                            if shotDataNumBits obsShots == 1
+                                then putStrLn "Correct number of observables."
+                                else error "Wrong number of observables"
+
     putStrLn "=== All tests passed! ==="

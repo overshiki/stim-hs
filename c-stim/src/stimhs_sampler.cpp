@@ -79,6 +79,51 @@ stimhs_result_t stimhs_det_sampler_sample(stimhs_det_sampler_t s, size_t num_sho
     }
 }
 
+stimhs_result_t stimhs_det_sampler_sample_with_observables(
+    stimhs_det_sampler_t s, size_t num_shots,
+    uint8_t** out_det_buffer, size_t* out_det_num_bytes, size_t* out_num_detectors,
+    uint8_t** out_obs_buffer, size_t* out_obs_num_bytes, size_t* out_num_observables,
+    char* err_buf, size_t err_buf_len) {
+    try {
+        auto* sampler = reinterpret_cast<DetSampler*>(s);
+        auto result = stim::sample_batch_detection_events<W>(sampler->circuit, num_shots, sampler->rng);
+        const auto& det_table = result.first;
+        const auto& obs_table = result.second;
+
+        auto stats = sampler->circuit.compute_stats();
+        size_t num_dets = stats.num_detectors;
+        size_t num_obs = stats.num_observables;
+
+        // Detector buffer
+        size_t det_bytes = num_dets * num_shots;
+        uint8_t* det_buf = new uint8_t[det_bytes];
+        for (size_t shot = 0; shot < num_shots; ++shot) {
+            for (size_t det = 0; det < num_dets; ++det) {
+                det_buf[shot * num_dets + det] = det_table[det][shot] ? 1 : 0;
+            }
+        }
+
+        // Observable buffer
+        size_t obs_bytes = num_obs * num_shots;
+        uint8_t* obs_buf = new uint8_t[obs_bytes];
+        for (size_t shot = 0; shot < num_shots; ++shot) {
+            for (size_t obs = 0; obs < num_obs; ++obs) {
+                obs_buf[shot * num_obs + obs] = obs_table[obs][shot] ? 1 : 0;
+            }
+        }
+
+        *out_det_buffer = det_buf;
+        *out_det_num_bytes = det_bytes;
+        *out_num_detectors = num_dets;
+        *out_obs_buffer = obs_buf;
+        *out_obs_num_bytes = obs_bytes;
+        *out_num_observables = num_obs;
+        return STIMHS_OK;
+    } catch (...) {
+        return stimhs::catch_exceptions(err_buf, err_buf_len);
+    }
+}
+
 stimhs_result_t stimhs_circuit_compile_measurement_sampler(stimhs_circuit_t c, stimhs_meas_sampler_t* out,
                                                            char* err_buf, size_t err_buf_len) {
     try {
