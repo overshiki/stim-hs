@@ -70,6 +70,23 @@ stimhs_result_t stimhs_circuit_from_string(const char* str, stimhs_circuit_t* ou
 stimhs_result_t stimhs_circuit_to_detector_error_model(stimhs_circuit_t c, char** out_str,
                                                        char* err_buf, size_t err_buf_len);
 
+/* ========== Circuit generation ========== */
+stimhs_result_t stimhs_generate_surface_code_circuit_text(
+    uint64_t rounds, uint32_t distance, const char* task,
+    double after_clifford_depolarization,
+    double before_round_data_depolarization,
+    double before_measure_flip_probability,
+    double after_reset_flip_probability,
+    char** out_str, char* err_buf, size_t err_buf_len);
+
+stimhs_result_t stimhs_generate_surface_code_circuit(
+    uint64_t rounds, uint32_t distance, const char* task,
+    double after_clifford_depolarization,
+    double before_round_data_depolarization,
+    double before_measure_flip_probability,
+    double after_reset_flip_probability,
+    stimhs_circuit_t* out_c, char* err_buf, size_t err_buf_len);
+
 /* ========== TableauSimulator ========== */
 stimhs_tableau_sim_t stimhs_tableau_sim_new(size_t num_qubits, char* err_buf, size_t err_buf_len);
 void stimhs_tableau_sim_free(stimhs_tableau_sim_t s);

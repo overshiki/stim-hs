@@ -63,6 +63,16 @@ foreign import ccall safe "stimhs_circuit_from_string"
 foreign import ccall safe "stimhs_circuit_to_detector_error_model"
     c_stimhs_circuit_to_detector_error_model :: Ptr StimCircuit -> Ptr CString -> Ptr CChar -> CSize -> IO CInt
 
+foreign import ccall safe "stimhs_generate_surface_code_circuit_text"
+    c_stimhs_generate_surface_code_circuit_text
+        :: CULong -> CUInt -> CString -> CDouble -> CDouble -> CDouble -> CDouble
+        -> Ptr CString -> Ptr CChar -> CSize -> IO CInt
+
+foreign import ccall safe "stimhs_generate_surface_code_circuit"
+    c_stimhs_generate_surface_code_circuit
+        :: CULong -> CUInt -> CString -> CDouble -> CDouble -> CDouble -> CDouble
+        -> Ptr (Ptr StimCircuit) -> Ptr CChar -> CSize -> IO CInt
+
 foreign import ccall safe "stimhs_string_free"
     c_stimhs_string_free :: CString -> IO ()
 

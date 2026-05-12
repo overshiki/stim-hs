@@ -2,11 +2,7 @@
 
 Safe Haskell bindings for [Stim](https://github.com/quantumlib/Stim)—Google's high-performance stabilizer circuit simulator.
 
-[![CI](https://github.com/inmzhang/stim-hs/actions/workflows/ci.yml/badge.svg)](https://github.com/inmzhang/stim-hs/actions/workflows/ci.yml)
-
 **stim-hs** provides safe, idiomatic Haskell bindings to [Stim](https://github.com/quantumlib/Stim)—Google's high-performance stabilizer circuit simulator and analyzer widely used in quantum error-correction (QEC) research.
-
-It is designed as a faithful, feature-aligned Haskell counterpart to the upstream Python API, with Rust-inspired engineering discipline: vendored sources, parity-auditable interfaces, cross-platform CI, and zero-cost opaque handles.
 
 ---
 
@@ -52,15 +48,6 @@ This project deliberately mirrors the architectural decisions of [`stim-rs`](htt
 - **Cross-platform CI**: tested on Linux, macOS, and Windows from day one.
 
 Where Haskell diverges is in the **bridge technology**. Rust has the transformative `cxx` crate for safe, bidirectional C++ interop. Haskell's FFI is fundamentally C-oriented. There is no `cxx` equivalent. Therefore, `stim-hs` adopts the time-tested **C-shim pattern**: a hand-written C compatibility layer that exposes Stim's C++ API through C-callable functions with opaque pointers.
-
-### Why not SWIG, Hoppy, or inline-c-cpp?
-
-| Approach | Verdict |
-|----------|---------|
-| **Hand-written C shim** | ✅ Chosen. Full control over memory, exceptions, and ABI stability. |
-| **Hoppy** | ❌ High-risk for a fast-moving upstream; limited maintenance. |
-| **inline-c-cpp** | ❌ Excellent for prototypes, unmanageable at Stim's scale. |
-| **SWIG** | ❌ Haskell backend is outdated and unmaintained. |
 
 ---
 
@@ -142,7 +129,7 @@ Shot data and measurement results are returned as strict `Data.Vector.Storable.V
 ### Clone and Build
 
 ```bash
-git clone --recurse-submodules https://github.com/inmzhang/stim-hs.git
+git clone --recurse-submodules https://github.com/overshiki/stim-hs.git
 cd stim-hs
 
 # Build the C compatibility layer

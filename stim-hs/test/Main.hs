@@ -107,4 +107,41 @@ main = do
                                 then putStrLn "Correct number of observables."
                                 else error "Wrong number of observables"
 
+    putStrLn "=== Test 7: Surface code generation (text) ==="
+    textResult <- generateSurfaceCodeCircuitText (defaultSurfaceCodeParams RotatedMemoryZ 3 3)
+    case textResult of
+        Left err -> error (show err)
+        Right txt -> do
+            putStrLn $ "Surface code circuit length: " ++ show (length txt)
+            if "R" `isInfixOf` txt && "M" `isInfixOf` txt
+                then putStrLn "Circuit contains expected gates."
+                else error "Generated circuit missing expected gates"
+
+    putStrLn "=== Test 8: Surface code generation (circuit) ==="
+    circResult8 <- generateSurfaceCodeCircuit (defaultSurfaceCodeParams UnrotatedMemoryX 2 2)
+    case circResult8 of
+        Left err -> error (show err)
+        Right circ8 -> do
+            strResult8 <- circuitToString circ8
+            case strResult8 of
+                Left err -> error (show err)
+                Right s8 -> do
+                    putStrLn $ "Unrotated memory X circuit length: " ++ show (length s8)
+                    if "H" `isInfixOf` s8
+                        then putStrLn "Circuit contains H gates as expected."
+                        else error "Generated circuit missing expected H gates"
+
+    putStrLn "=== Test 9: Surface code generation with noise ==="
+    let noisyParams = (defaultSurfaceCodeParams RotatedMemoryZ 2 2)
+            { scAfterCliffordDepolarization = 0.01
+            , scBeforeMeasureFlipProbability = 0.001
+            }
+    noisyResult <- generateSurfaceCodeCircuitText noisyParams
+    case noisyResult of
+        Left err -> error (show err)
+        Right noisyTxt -> do
+            if "DEPOLARIZE1" `isInfixOf` noisyTxt || "X_ERROR" `isInfixOf` noisyTxt
+                then putStrLn "Noisy circuit contains expected error channels."
+                else error "Noisy circuit missing expected error channels"
+
     putStrLn "=== All tests passed! ==="

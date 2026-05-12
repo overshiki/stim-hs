@@ -19,6 +19,7 @@ library
   exposed-modules:     Stim
                      , Stim.Types
                      , Stim.Circuit
+                     , Stim.Circuit.Gen
                      , Stim.TableauSimulator
                      , Stim.Tableau
                      , Stim.Sampler
