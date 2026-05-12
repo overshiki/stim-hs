@@ -37,12 +37,15 @@ library
   ghc-options:         -Wall -Wcompat
   extra-libraries:     stimhs
 
-executable stim-hs-test
+test-suite stim-hs-test
+  type:                exitcode-stdio-1.0
   main-is:             Main.hs
   hs-source-dirs:      test
   build-depends:       base >= 4.16 && < 5
                      , stim-hs
                      , vector >= 0.13
+                     , tasty >= 1.4
+                     , tasty-hunit >= 0.10
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
@@ -64,15 +67,4 @@ executable stim-hs-dem-demo
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
--- test-suite disabled for now due to relative path issues in CI
--- test-suite stim-test
---   type:                exitcode-stdio-1.0
---   main-is:             Main.hs
---   hs-source-dirs:      test
---   build-depends:       base >= 4.16 && < 5
---                      , stim
---                      , vector >= 0.13
---                      , tasty >= 1.4
---                      , tasty-hunit >= 0.10
---   default-language:    Haskell2010
---   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+

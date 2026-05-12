@@ -2,146 +2,103 @@ module Main where
 
 import Data.List (isInfixOf)
 import qualified Data.Vector.Storable as VS
+import Test.Tasty
+import Test.Tasty.HUnit
 import Stim
 
 main :: IO ()
-main = do
-    putStrLn "=== Test 1: Circuit construction and stringification ==="
+main = defaultMain $ testGroup "stim-hs tests"
+    [ testCase "Circuit construction and stringification" testCircuitConstruction
+    , testCase "Circuit from string" testCircuitFromString
+    , testCase "TableauSimulator" testTableauSimulator
+    , testCase "MeasurementSampler" testMeasurementSampler
+    , testCase "Circuit to Detector Error Model" testDetectorErrorModel
+    , testCase "DetectorSampler with observables" testDetectorSamplerWithObservables
+    , testCase "Surface code generation (text)" testSurfaceCodeText
+    , testCase "Surface code generation (circuit)" testSurfaceCodeCircuit
+    , testCase "Surface code generation with noise" testSurfaceCodeNoise
+    ]
+
+assertRight :: Either StimError a -> IO a
+assertRight (Left err) = assertFailure (show err)
+assertRight (Right x)  = return x
+
+testCircuitConstruction :: Assertion
+testCircuitConstruction = do
     circ <- circuitNew
-    _ <- appendH circ (VS.fromList [0])
-    _ <- appendCNOT circ (VS.fromList [0, 1])
-    _ <- appendM circ (VS.fromList [0, 1])
-    strResult <- circuitToString circ
-    case strResult of
-        Left err -> error (show err)
-        Right s -> putStrLn s
+    _ <- assertRight =<< appendH circ (VS.fromList [0])
+    _ <- assertRight =<< appendCNOT circ (VS.fromList [0, 1])
+    _ <- assertRight =<< appendM circ (VS.fromList [0, 1])
+    s <- assertRight =<< circuitToString circ
+    assertBool "Expected H gate" ("H 0" `isInfixOf` s)
+    assertBool "Expected CNOT gate" ("CX 0 1" `isInfixOf` s)
+    assertBool "Expected M gate" ("M 0 1" `isInfixOf` s)
 
-    putStrLn "=== Test 2: Circuit from string ==="
-    circ2Result <- circuitFromString "H 0\nCNOT 0 1\nM 0 1"
-    case circ2Result of
-        Left err -> error (show err)
-        Right circ2 -> do
-            str2Result <- circuitToString circ2
-            case str2Result of
-                Left err -> error (show err)
-                Right s2 -> putStrLn s2
+testCircuitFromString :: Assertion
+testCircuitFromString = do
+    circ <- assertRight =<< circuitFromString "H 0\nCNOT 0 1\nM 0 1"
+    s <- assertRight =<< circuitToString circ
+    assertBool "Expected H gate" ("H 0" `isInfixOf` s)
+    assertBool "Expected CNOT gate" ("CX 0 1" `isInfixOf` s)
+    assertBool "Expected M gate" ("M 0 1" `isInfixOf` s)
 
-    putStrLn "=== Test 3: TableauSimulator ==="
-    simResult <- tableauSimNew 2
-    case simResult of
-        Left err -> error (show err)
-        Right sim -> do
-            _ <- doH sim 0
-            _ <- doCNOT sim 0 1
-            tabResult <- currentTableau sim
-            case tabResult of
-                Left err -> error (show err)
-                Right tab -> do
-                    tabStrResult <- tableauToString tab
-                    case tabStrResult of
-                        Left err -> error (show err)
-                        Right ts -> putStrLn ts
+testTableauSimulator :: Assertion
+testTableauSimulator = do
+    sim <- assertRight =<< tableauSimNew 2
+    _ <- assertRight =<< doH sim 0
+    _ <- assertRight =<< doCNOT sim 0 1
+    tab <- assertRight =<< currentTableau sim
+    ts <- assertRight =<< tableauToString tab
+    assertBool "Tableau should contain ZX" ("ZX" `isInfixOf` ts)
 
-    putStrLn "=== Test 4: MeasurementSampler ==="
-    circ3Result <- circuitFromString "H 0\nCNOT 0 1\nM 0 1"
-    case circ3Result of
-        Left err -> error (show err)
-        Right circ3 -> do
-            samplerResult <- compileMeasurementSampler circ3
-            case samplerResult of
-                Left err -> error (show err)
-                Right sampler -> do
-                    shotResult <- sampleMeasurements sampler 10
-                    case shotResult of
-                        Left err -> error (show err)
-                        Right shots -> do
-                            putStrLn $ "Num shots: " ++ show (shotDataNumShots shots)
-                            putStrLn $ "Num measurements: " ++ show (shotDataNumBits shots)
-                            putStrLn $ "Data: " ++ show (shotDataBytes shots)
+testMeasurementSampler :: Assertion
+testMeasurementSampler = do
+    circ <- assertRight =<< circuitFromString "H 0\nCNOT 0 1\nM 0 1"
+    sampler <- assertRight =<< compileMeasurementSampler circ
+    shots <- assertRight =<< sampleMeasurements sampler 10
+    assertEqual "Num shots" 10 (shotDataNumShots shots)
+    assertEqual "Num measurements" 2 (shotDataNumBits shots)
+    assertEqual "Data length" 20 (VS.length (shotDataBytes shots))
 
-    putStrLn "=== Test 5: Circuit to Detector Error Model ==="
-    circ4Result <- circuitFromString "H 0\nCNOT 0 1\nM 0 1\nDETECTOR rec[-1] rec[-2]"
-    case circ4Result of
-        Left err -> error (show err)
-        Right circ4 -> do
-            demResult <- circuitToDetectorErrorModel circ4
-            case demResult of
-                Left err -> error (show err)
-                Right dem -> do
-                    putStrLn dem
-                    -- Basic sanity check: DEM should mention detector D0
-                    if "D0" `isInfixOf` dem
-                        then putStrLn "DEM contains D0."
-                        else error "DEM missing expected D0 detector"
+testDetectorErrorModel :: Assertion
+testDetectorErrorModel = do
+    circ <- assertRight =<< circuitFromString "H 0\nCNOT 0 1\nM 0 1\nDETECTOR rec[-1] rec[-2]"
+    dem <- assertRight =<< circuitToDetectorErrorModel circ
+    assertBool "DEM should contain D0" ("D0" `isInfixOf` dem)
 
-    putStrLn "=== Test 6: DetectorSampler with observables ==="
-    circ5Result <- circuitFromString "H 0\nCNOT 0 1\nM 0 1\nDETECTOR rec[-1] rec[-2]\nOBSERVABLE_INCLUDE(0) rec[-1]"
-    case circ5Result of
-        Left err -> error (show err)
-        Right circ5 -> do
-            samplerResult <- compileDetectorSampler circ5
-            case samplerResult of
-                Left err -> error (show err)
-                Right sampler -> do
-                    shotResult <- sampleDetectorsWithObservables sampler 10
-                    case shotResult of
-                        Left err -> error (show err)
-                        Right (detShots, obsShots) -> do
-                            putStrLn $ "Detector shots: " ++ show (shotDataNumShots detShots)
-                            putStrLn $ "Detector bits: " ++ show (shotDataNumBits detShots)
-                            putStrLn $ "Detector data: " ++ show (shotDataBytes detShots)
-                            putStrLn $ "Observable shots: " ++ show (shotDataNumShots obsShots)
-                            putStrLn $ "Observable bits: " ++ show (shotDataNumBits obsShots)
-                            putStrLn $ "Observable data: " ++ show (shotDataBytes obsShots)
-                            -- Sanity checks
-                            if shotDataNumShots detShots == 10
-                                then putStrLn "Correct number of detector shots."
-                                else error "Wrong number of detector shots"
-                            if shotDataNumBits detShots == 1
-                                then putStrLn "Correct number of detectors."
-                                else error "Wrong number of detectors"
-                            if shotDataNumShots obsShots == 10
-                                then putStrLn "Correct number of observable shots."
-                                else error "Wrong number of observable shots"
-                            if shotDataNumBits obsShots == 1
-                                then putStrLn "Correct number of observables."
-                                else error "Wrong number of observables"
+testDetectorSamplerWithObservables :: Assertion
+testDetectorSamplerWithObservables = do
+    circ <- assertRight =<< circuitFromString
+        "H 0\nCNOT 0 1\nM 0 1\nDETECTOR rec[-1] rec[-2]\nOBSERVABLE_INCLUDE(0) rec[-1]"
+    sampler <- assertRight =<< compileDetectorSampler circ
+    (detShots, obsShots) <- assertRight =<< sampleDetectorsWithObservables sampler 10
+    assertEqual "Detector shots" 10 (shotDataNumShots detShots)
+    assertEqual "Detector bits" 1 (shotDataNumBits detShots)
+    assertEqual "Detector data length" 10 (VS.length (shotDataBytes detShots))
+    assertEqual "Observable shots" 10 (shotDataNumShots obsShots)
+    assertEqual "Observable bits" 1 (shotDataNumBits obsShots)
+    assertEqual "Observable data length" 10 (VS.length (shotDataBytes obsShots))
 
-    putStrLn "=== Test 7: Surface code generation (text) ==="
-    textResult <- generateSurfaceCodeCircuitText (defaultSurfaceCodeParams RotatedMemoryZ 3 3)
-    case textResult of
-        Left err -> error (show err)
-        Right txt -> do
-            putStrLn $ "Surface code circuit length: " ++ show (length txt)
-            if "R" `isInfixOf` txt && "M" `isInfixOf` txt
-                then putStrLn "Circuit contains expected gates."
-                else error "Generated circuit missing expected gates"
+testSurfaceCodeText :: Assertion
+testSurfaceCodeText = do
+    txt <- assertRight =<< generateSurfaceCodeCircuitText
+        (defaultSurfaceCodeParams RotatedMemoryZ 3 3)
+    assertBool "Circuit should contain R gates" ("R" `isInfixOf` txt)
+    assertBool "Circuit should contain M gates" ("M" `isInfixOf` txt)
 
-    putStrLn "=== Test 8: Surface code generation (circuit) ==="
-    circResult8 <- generateSurfaceCodeCircuit (defaultSurfaceCodeParams UnrotatedMemoryX 2 2)
-    case circResult8 of
-        Left err -> error (show err)
-        Right circ8 -> do
-            strResult8 <- circuitToString circ8
-            case strResult8 of
-                Left err -> error (show err)
-                Right s8 -> do
-                    putStrLn $ "Unrotated memory X circuit length: " ++ show (length s8)
-                    if "H" `isInfixOf` s8
-                        then putStrLn "Circuit contains H gates as expected."
-                        else error "Generated circuit missing expected H gates"
+testSurfaceCodeCircuit :: Assertion
+testSurfaceCodeCircuit = do
+    circ <- assertRight =<< generateSurfaceCodeCircuit
+        (defaultSurfaceCodeParams UnrotatedMemoryX 2 2)
+    s <- assertRight =<< circuitToString circ
+    assertBool "Circuit should contain H gates" ("H" `isInfixOf` s)
 
-    putStrLn "=== Test 9: Surface code generation with noise ==="
+testSurfaceCodeNoise :: Assertion
+testSurfaceCodeNoise = do
     let noisyParams = (defaultSurfaceCodeParams RotatedMemoryZ 2 2)
             { scAfterCliffordDepolarization = 0.01
             , scBeforeMeasureFlipProbability = 0.001
             }
-    noisyResult <- generateSurfaceCodeCircuitText noisyParams
-    case noisyResult of
-        Left err -> error (show err)
-        Right noisyTxt -> do
-            if "DEPOLARIZE1" `isInfixOf` noisyTxt || "X_ERROR" `isInfixOf` noisyTxt
-                then putStrLn "Noisy circuit contains expected error channels."
-                else error "Noisy circuit missing expected error channels"
-
-    putStrLn "=== All tests passed! ==="
+    noisyTxt <- assertRight =<< generateSurfaceCodeCircuitText noisyParams
+    assertBool "Noisy circuit should contain DEPOLARIZE1"
+        ("DEPOLARIZE1" `isInfixOf` noisyTxt || "X_ERROR" `isInfixOf` noisyTxt)
