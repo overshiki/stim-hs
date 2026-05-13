@@ -23,16 +23,9 @@ Safe Haskell bindings for [Stim](https://github.com/quantumlib/Stim)—Google's 
 
 Quantum error correction is computationally demanding. Stabilizer circuit simulation—the backbone of most QEC research—requires manipulating thousands of qubits, millions of gates, and complex detector error models. Google's **Stim** has emerged as the de facto standard for this workload, offering a highly optimized C++ core with a Python frontend that feels almost NumPy-native.
 
-Yet Python's Global Interpreter Lock, memory overhead, and deployment complexity create friction for researchers who want to:
+Python's ecosystem for numerical and quantum computing is far more mature, with NumPy, SciPy, and Stim's own Python frontend providing a polished, batteries-included experience. Haskell, by contrast, lacks of established libraries for quantum error correction.
 
-- Embed simulators into larger HPC pipelines
-- Deploy QEC decoders on edge hardware
-- Build memory-efficient decoding graphs
-- Write performance-critical classical control software
-
-Haskell has long excelled in compositional, type-safe numerical computing. Libraries like `vector`, `massiv`, and `repa` provide high-performance array processing, while GHC's compiled binaries are self-contained and deployable without a Python runtime. The missing piece has been high-quality bindings to Stim.
-
-**stim-hs** fills that gap.
+**stim-hs** fills that gap. By providing high-quality bindings to Stim, it gives Haskell developers access to the same high-performance stabilizer simulation that powers Python QEC research. This opens the door for type-safe, composable QEC application development in Haskell—from decoder prototypes to classical control software—without requiring a Python runtime.
 
 ---
 
@@ -45,7 +38,6 @@ This project deliberately mirrors the architectural decisions of [`stim-rs`](htt
 - **Vendored upstream sources**: Stim is pinned as a git submodule for hermetic, reproducible builds.
 - **Two-layer abstraction**: a thin, unsafe bridge layer and a thick, safe wrapper layer.
 - **Automated parity auditing**: Python-based inventory scripts verify API coverage against upstream Python docs.
-- **Cross-platform CI**: tested on Linux, macOS, and Windows from day one.
 
 Where Haskell diverges is in the **bridge technology**. Rust has the transformative `cxx` crate for safe, bidirectional C++ interop. Haskell's FFI is fundamentally C-oriented. There is no `cxx` equivalent. Therefore, `stim-hs` adopts the time-tested **C-shim pattern**: a hand-written C compatibility layer that exposes Stim's C++ API through C-callable functions with opaque pointers.
 
@@ -277,13 +269,11 @@ fromStringOrDie s = circuitFromString s >>= either throwIO return
 - ✅ Measurement sampling via `CompiledMeasurementSampler`
 - ✅ Detector sampling via `CompiledDetectorSampler`
 - ✅ Cross-platform build scaffolding (Linux primary; macOS/Windows via Makefile/CMake)
+- ✅ DetectorErrorModel` (DEM) construction and sampling
 
 **Near-term roadmap**:
-- [ ] `DetectorErrorModel` (DEM) construction and sampling
 - [ ] `PauliString` and `Flow` types
 - [ ] I/O for Stim shot data formats (`b8`, `r8`, `dets`, etc.)
-- [ ] Rust-native-style noise models: `UniformDepolarizing`, `Si1000`
-- [ ] Python parity audit suite in CI
 - [ ] Hackage release
 
 ---
