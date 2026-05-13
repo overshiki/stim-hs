@@ -1,6 +1,6 @@
 # stim-hs
 
-Safe Haskell bindings for [Stim](https://github.com/quantumlib/Stim)—Google's high-performance stabilizer circuit simulator.
+Haskell bindings for [Stim](https://github.com/quantumlib/Stim)—Google's high-performance stabilizer circuit simulator.
 
 **stim-hs** provides safe, idiomatic Haskell bindings to [Stim](https://github.com/quantumlib/Stim)—Google's high-performance stabilizer circuit simulator and analyzer widely used in quantum error-correction (QEC) research.
 
@@ -268,7 +268,6 @@ fromStringOrDie s = circuitFromString s >>= either throwIO return
 - ✅ String round-tripping: `circuitToString` / `circuitFromString`
 - ✅ Measurement sampling via `CompiledMeasurementSampler`
 - ✅ Detector sampling via `CompiledDetectorSampler`
-- ✅ Cross-platform build scaffolding (Linux primary; macOS/Windows via Makefile/CMake)
 - ✅ DetectorErrorModel` (DEM) construction and sampling
 
 **Near-term roadmap**:
