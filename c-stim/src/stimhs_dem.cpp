@@ -13,7 +13,8 @@ extern "C" {
 /* Compile a circuit to its Detector Error Model string representation.
  *
  * Parameters chosen for QEC decoder workloads (CPT-BP use case):
- *   - decompose_errors=true: produces graphlike errors needed for BP decoding
+ *   - decompose_errors=false: matches Stim Python's default; avoids '^'
+ *     separator syntax that external parsers typically cannot handle
  *   - fold_loops=true: unrolls REPEAT blocks for full expansion
  *   - allow_gauge_detectors=false: rejects circuits with gauge detectors
  *   - approximate_disjoint_errors_threshold=1.0: never merge disjoint errors
@@ -21,9 +22,8 @@ extern "C" {
  *   - ignore_decomposition_failures=false: fail loudly on undecomposed errors
  *   - block_decomposition_from_introducing_remnant_edges=false
  *
- * Note: These differ from Stim Python's detector_error_model() defaults.
- * Python defaults to decompose_errors=false and approximate_disjoint_errors=false.
- * A future extended API may expose all parameters.
+ * Note: approximate_disjoint_errors_threshold=1.0 differs from Stim Python's
+ * default of false. A future extended API may expose all parameters.
  */
 stimhs_result_t stimhs_circuit_to_detector_error_model(
     stimhs_circuit_t c, char** out_str,
@@ -33,7 +33,7 @@ stimhs_result_t stimhs_circuit_to_detector_error_model(
         stim::DetectorErrorModel dem =
             stim::ErrorAnalyzer::circuit_to_detector_error_model(
                 *circ,
-                /*decompose_errors=*/true,
+                /*decompose_errors=*/false,
                 /*fold_loops=*/true,
                 /*allow_gauge_detectors=*/false,
                 /*approximate_disjoint_errors_threshold=*/1.0,

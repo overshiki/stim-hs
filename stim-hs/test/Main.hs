@@ -13,6 +13,7 @@ main = defaultMain $ testGroup "stim-hs tests"
     , testCase "TableauSimulator" testTableauSimulator
     , testCase "MeasurementSampler" testMeasurementSampler
     , testCase "Circuit to Detector Error Model" testDetectorErrorModel
+    , testCase "DEM is fully flattened" testDetectorErrorModelFlattened
     , testCase "DetectorSampler with observables" testDetectorSamplerWithObservables
     , testCase "Surface code generation (text)" testSurfaceCodeText
     , testCase "Surface code generation (circuit)" testSurfaceCodeCircuit
@@ -65,6 +66,21 @@ testDetectorErrorModel = do
     circ <- assertRight =<< circuitFromString "H 0\nCNOT 0 1\nM 0 1\nDETECTOR rec[-1] rec[-2]"
     dem <- assertRight =<< circuitToDetectorErrorModel circ
     assertBool "DEM should contain D0" ("D0" `isInfixOf` dem)
+    assertBool "DEM should not contain ^" (not ("^" `isInfixOf` dem))
+
+testDetectorErrorModelFlattened :: Assertion
+testDetectorErrorModelFlattened = do
+    -- Surface code with noise is likely to produce decompositions;
+    -- flattened output must not contain '^' operators.
+    circ <- assertRight =<< generateSurfaceCodeCircuit
+        (defaultSurfaceCodeParams RotatedMemoryZ 3 3)
+            { scAfterCliffordDepolarization = 0.003
+            , scAfterResetFlipProbability = 0.003
+            , scBeforeMeasureFlipProbability = 0.003
+            , scBeforeRoundDataDepolarization = 0.003
+            }
+    dem <- assertRight =<< circuitToDetectorErrorModel circ
+    assertBool "Flattened DEM should not contain ^" (not ("^" `isInfixOf` dem))
 
 testDetectorSamplerWithObservables :: Assertion
 testDetectorSamplerWithObservables = do

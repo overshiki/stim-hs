@@ -135,11 +135,15 @@ circuitFromString str =
 
 -- | Compile a circuit to its Detector Error Model text representation.
 --
+-- The output is safe for consumption by external decoders and parsers:
+-- it contains no @^@ correlated-error separators.
+--
 -- The parameters used internally are chosen for QEC decoder workloads:
--- decompose_errors=true, fold_loops=true, allow_gauge_detectors=false,
+-- decompose_errors=false (matches Stim Python's default), fold_loops=true,
+-- allow_gauge_detectors=false,
 -- approximate_disjoint_errors_threshold=1.0 (never merge disjoint errors),
 -- ignore_decomposition_failures=false.
--- These differ from Stim Python's defaults.
+-- Only approximate_disjoint_errors_threshold differs from Python's defaults.
 circuitToDetectorErrorModel :: Circuit -> IO (Either StimError String)
 circuitToDetectorErrorModel (Circuit fp) =
     withForeignPtr fp $ \cPtr ->
