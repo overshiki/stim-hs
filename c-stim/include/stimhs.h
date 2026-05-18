@@ -107,6 +107,9 @@ stimhs_result_t stimhs_tableau_to_string(stimhs_tableau_t t, char** out_str,
 /* ========== DetectorSampler ========== */
 stimhs_result_t stimhs_circuit_compile_detector_sampler(stimhs_circuit_t c, stimhs_det_sampler_t* out,
                                                         char* err_buf, size_t err_buf_len);
+stimhs_result_t stimhs_circuit_compile_detector_sampler_with_seed(
+    stimhs_circuit_t c, uint64_t seed, stimhs_det_sampler_t* out,
+    char* err_buf, size_t err_buf_len);
 void stimhs_det_sampler_free(stimhs_det_sampler_t s);
 stimhs_result_t stimhs_det_sampler_sample(stimhs_det_sampler_t s, size_t num_shots,
                                           uint8_t** out_buffer, size_t* out_num_bytes,
@@ -125,6 +128,9 @@ stimhs_result_t stimhs_det_sampler_sample_with_observables(
 /* ========== MeasurementSampler ========== */
 stimhs_result_t stimhs_circuit_compile_measurement_sampler(stimhs_circuit_t c, stimhs_meas_sampler_t* out,
                                                            char* err_buf, size_t err_buf_len);
+stimhs_result_t stimhs_circuit_compile_measurement_sampler_with_seed(
+    stimhs_circuit_t c, uint64_t seed, stimhs_meas_sampler_t* out,
+    char* err_buf, size_t err_buf_len);
 void stimhs_meas_sampler_free(stimhs_meas_sampler_t s);
 stimhs_result_t stimhs_meas_sampler_sample(stimhs_meas_sampler_t s, size_t num_shots,
                                            uint8_t** out_buffer, size_t* out_num_bytes,

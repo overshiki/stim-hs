@@ -28,9 +28,15 @@ extern "C" {
 
 stimhs_result_t stimhs_circuit_compile_detector_sampler(stimhs_circuit_t c, stimhs_det_sampler_t* out,
                                                         char* err_buf, size_t err_buf_len) {
+    return stimhs_circuit_compile_detector_sampler_with_seed(c, 0, out, err_buf, err_buf_len);
+}
+
+stimhs_result_t stimhs_circuit_compile_detector_sampler_with_seed(
+    stimhs_circuit_t c, uint64_t seed, stimhs_det_sampler_t* out,
+    char* err_buf, size_t err_buf_len) {
     try {
         auto* circ = reinterpret_cast<stim::Circuit*>(c);
-        auto* sampler = new DetSampler{*circ, std::mt19937_64{}};
+        auto* sampler = new DetSampler{*circ, std::mt19937_64{seed}};
         *out = reinterpret_cast<stimhs_det_sampler_t>(sampler);
         return STIMHS_OK;
     } catch (...) {
@@ -126,10 +132,16 @@ stimhs_result_t stimhs_det_sampler_sample_with_observables(
 
 stimhs_result_t stimhs_circuit_compile_measurement_sampler(stimhs_circuit_t c, stimhs_meas_sampler_t* out,
                                                            char* err_buf, size_t err_buf_len) {
+    return stimhs_circuit_compile_measurement_sampler_with_seed(c, 0, out, err_buf, err_buf_len);
+}
+
+stimhs_result_t stimhs_circuit_compile_measurement_sampler_with_seed(
+    stimhs_circuit_t c, uint64_t seed, stimhs_meas_sampler_t* out,
+    char* err_buf, size_t err_buf_len) {
     try {
         auto* circ = reinterpret_cast<stim::Circuit*>(c);
         stim::simd_bits<W> ref_sample = stim::TableauSimulator<W>::reference_sample_circuit(*circ);
-        auto* sampler = new MeasSampler{*circ, std::move(ref_sample), std::mt19937_64{}};
+        auto* sampler = new MeasSampler{*circ, std::move(ref_sample), std::mt19937_64{seed}};
         *out = reinterpret_cast<stimhs_meas_sampler_t>(sampler);
         return STIMHS_OK;
     } catch (...) {
