@@ -112,6 +112,9 @@ foreign import ccall safe "stimhs_tableau_to_string"
 foreign import ccall safe "stimhs_circuit_compile_detector_sampler"
     c_stimhs_circuit_compile_detector_sampler :: Ptr StimCircuit -> Ptr (Ptr StimDetSampler) -> Ptr CChar -> CSize -> IO CInt
 
+foreign import ccall safe "stimhs_circuit_compile_detector_sampler_with_seed"
+    c_stimhs_circuit_compile_detector_sampler_with_seed :: Ptr StimCircuit -> Word64 -> Ptr (Ptr StimDetSampler) -> Ptr CChar -> CSize -> IO CInt
+
 foreign import ccall safe "stimhs_det_sampler_free"
     c_stimhs_det_sampler_free :: Ptr StimDetSampler -> IO ()
 
@@ -130,6 +133,9 @@ foreign import ccall safe "stimhs_buffer_free"
 -- MeasurementSampler
 foreign import ccall safe "stimhs_circuit_compile_measurement_sampler"
     c_stimhs_circuit_compile_measurement_sampler :: Ptr StimCircuit -> Ptr (Ptr StimMeasSampler) -> Ptr CChar -> CSize -> IO CInt
+
+foreign import ccall safe "stimhs_circuit_compile_measurement_sampler_with_seed"
+    c_stimhs_circuit_compile_measurement_sampler_with_seed :: Ptr StimCircuit -> Word64 -> Ptr (Ptr StimMeasSampler) -> Ptr CChar -> CSize -> IO CInt
 
 foreign import ccall safe "stimhs_meas_sampler_free"
     c_stimhs_meas_sampler_free :: Ptr StimMeasSampler -> IO ()

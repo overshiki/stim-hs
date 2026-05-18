@@ -1,10 +1,12 @@
 module Stim.Sampler
     ( ShotData (..)
     , compileDetectorSampler
+    , compileDetectorSamplerWithSeed
     , detectorSamplerFree
     , sampleDetectors
     , sampleDetectorsWithObservables
     , compileMeasurementSampler
+    , compileMeasurementSamplerWithSeed
     , measurementSamplerFree
     , sampleMeasurements
     ) where
@@ -24,11 +26,15 @@ data ShotData = ShotData
     } deriving (Eq, Show)
 
 compileDetectorSampler :: Circuit -> IO (Either StimError DetectorSampler)
-compileDetectorSampler (Circuit fp) =
+compileDetectorSampler = compileDetectorSamplerWithSeed 0
+
+compileDetectorSamplerWithSeed :: Int -> Circuit -> IO (Either StimError DetectorSampler)
+compileDetectorSamplerWithSeed seed (Circuit fp) =
     withForeignPtr fp $ \cPtr ->
         alloca $ \outPtr -> do
             result <- withErrorBuffer $ \errBuf errLen ->
-                c_stimhs_circuit_compile_detector_sampler cPtr outPtr errBuf errLen
+                c_stimhs_circuit_compile_detector_sampler_with_seed
+                    cPtr (fromIntegral seed) outPtr errBuf errLen
             case result of
                 Left err -> return (Left err)
                 Right () -> do
@@ -96,11 +102,15 @@ sampleDetectorsWithObservables (DetectorSampler fp) numShots =
                         )
 
 compileMeasurementSampler :: Circuit -> IO (Either StimError MeasurementSampler)
-compileMeasurementSampler (Circuit fp) =
+compileMeasurementSampler = compileMeasurementSamplerWithSeed 0
+
+compileMeasurementSamplerWithSeed :: Int -> Circuit -> IO (Either StimError MeasurementSampler)
+compileMeasurementSamplerWithSeed seed (Circuit fp) =
     withForeignPtr fp $ \cPtr ->
         alloca $ \outPtr -> do
             result <- withErrorBuffer $ \errBuf errLen ->
-                c_stimhs_circuit_compile_measurement_sampler cPtr outPtr errBuf errLen
+                c_stimhs_circuit_compile_measurement_sampler_with_seed
+                    cPtr (fromIntegral seed) outPtr errBuf errLen
             case result of
                 Left err -> return (Left err)
                 Right () -> do

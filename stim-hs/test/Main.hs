@@ -12,9 +12,11 @@ main = defaultMain $ testGroup "stim-hs tests"
     , testCase "Circuit from string" testCircuitFromString
     , testCase "TableauSimulator" testTableauSimulator
     , testCase "MeasurementSampler" testMeasurementSampler
+    , testCase "MeasurementSampler with seed" testMeasurementSamplerWithSeed
     , testCase "Circuit to Detector Error Model" testDetectorErrorModel
     , testCase "DEM is fully flattened" testDetectorErrorModelFlattened
     , testCase "DetectorSampler with observables" testDetectorSamplerWithObservables
+    , testCase "DetectorSampler with seed" testDetectorSamplerWithSeed
     , testCase "Surface code generation (text)" testSurfaceCodeText
     , testCase "Surface code generation (circuit)" testSurfaceCodeCircuit
     , testCase "Surface code generation with noise" testSurfaceCodeNoise
@@ -61,6 +63,18 @@ testMeasurementSampler = do
     assertEqual "Num measurements" 2 (shotDataNumBits shots)
     assertEqual "Data length" 20 (VS.length (shotDataBytes shots))
 
+testMeasurementSamplerWithSeed :: Assertion
+testMeasurementSamplerWithSeed = do
+    circ <- assertRight =<< circuitFromString "H 0\nCNOT 0 1\nM 0 1"
+    sampler1 <- assertRight =<< compileMeasurementSamplerWithSeed 42 circ
+    sampler2 <- assertRight =<< compileMeasurementSamplerWithSeed 42 circ
+    sampler3 <- assertRight =<< compileMeasurementSamplerWithSeed 99 circ
+    shots1 <- assertRight =<< sampleMeasurements sampler1 100
+    shots2 <- assertRight =<< sampleMeasurements sampler2 100
+    shots3 <- assertRight =<< sampleMeasurements sampler3 100
+    assertEqual "Same seed => same samples" (shotDataBytes shots1) (shotDataBytes shots2)
+    assertBool "Different seed => different samples" (shotDataBytes shots1 /= shotDataBytes shots3)
+
 testDetectorErrorModel :: Assertion
 testDetectorErrorModel = do
     circ <- assertRight =<< circuitFromString "H 0\nCNOT 0 1\nM 0 1\nDETECTOR rec[-1] rec[-2]"
@@ -94,6 +108,24 @@ testDetectorSamplerWithObservables = do
     assertEqual "Observable shots" 10 (shotDataNumShots obsShots)
     assertEqual "Observable bits" 1 (shotDataNumBits obsShots)
     assertEqual "Observable data length" 10 (VS.length (shotDataBytes obsShots))
+
+testDetectorSamplerWithSeed :: Assertion
+testDetectorSamplerWithSeed = do
+    -- Use a noisy circuit so outcomes vary with seed.
+    -- Note: detectors that are stabilizer parities of the state are deterministic
+    -- even with noise; we use a detector that is just a single random measurement.
+    circ <- assertRight =<< circuitFromString
+        "H 0\nDEPOLARIZE1(0.5) 0\nM 0\nDETECTOR rec[-1]\nOBSERVABLE_INCLUDE(0) rec[-1]"
+    sampler1 <- assertRight =<< compileDetectorSamplerWithSeed 42 circ
+    sampler2 <- assertRight =<< compileDetectorSamplerWithSeed 42 circ
+    sampler3 <- assertRight =<< compileDetectorSamplerWithSeed 99 circ
+    (det1, obs1) <- assertRight =<< sampleDetectorsWithObservables sampler1 1000
+    (det2, obs2) <- assertRight =<< sampleDetectorsWithObservables sampler2 1000
+    (det3, obs3) <- assertRight =<< sampleDetectorsWithObservables sampler3 1000
+    assertEqual "Same seed => same detector samples" (shotDataBytes det1) (shotDataBytes det2)
+    assertEqual "Same seed => same observable samples" (shotDataBytes obs1) (shotDataBytes obs2)
+    assertBool "Different seed => different detector samples" (shotDataBytes det1 /= shotDataBytes det3)
+    assertBool "Different seed => different observable samples" (shotDataBytes obs1 /= shotDataBytes obs3)
 
 testSurfaceCodeText :: Assertion
 testSurfaceCodeText = do
